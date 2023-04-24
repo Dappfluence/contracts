@@ -2,15 +2,20 @@
 pragma solidity ^0.8.0;
 
 import "openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
+import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "./AbstractNFT.sol";
 
-contract NFTMirror is AbstractNFT, ERC165 {
+contract NFTMirror is AbstractNFT, ERC165, Ownable {
     bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
     bytes4 private constant _INTERFACE_ID_ERC721_METADATA = 0x5b5e139f;
 
     AbstractNFT private _nftContract;
 
     constructor(AbstractNFT nftContractAddress) {
+        _nftContract = nftContractAddress;
+    }
+
+    function setNftContract(AbstractNFT nftContractAddress) external onlyOwner {
         _nftContract = nftContractAddress;
     }
 

@@ -46,4 +46,26 @@ contract NFTMirrorTest is Test {
         address ownerMirror = nftMirror.ownerOf(tokenId);
         assertEq(ownerBase, ownerMirror);
     }
+
+    function testTokenURI() public {
+        uint256 tokenId = 1;
+        string memory tokenURIbase = nftContractAddress.tokenURI(tokenId);
+        string memory tokenURImirror = nftMirror.tokenURI(tokenId);
+        assertEq(tokenURIbase, tokenURImirror);
+    }
+
+    function testOwnership() public {
+        nftMirror.setNftContract(AbstractNFT(address(98092442)));
+        nftMirror.setNftContract(nftContractAddress);
+
+        address owner = address(1231313);
+        nftMirror.transferOwnership(owner);
+        assertEq(nftMirror.owner(), owner);
+
+        vm.expectRevert("Ownable: caller is not the owner");
+        nftMirror.transferOwnership(address(4324324234));
+
+        vm.expectRevert("Ownable: caller is not the owner");
+        nftMirror.setNftContract(AbstractNFT(address(98092442)));
+    }
 }
