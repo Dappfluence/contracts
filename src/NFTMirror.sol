@@ -1,36 +1,47 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./INFTMirror.sol";
+import "openzeppelin-contracts/contracts/utils/introspection/ERC165.sol";
+import "./AbstractNFT.sol";
 
-contract NFTMirror is INFTMirror, ERC165 {
-    IERC721 private _nftContract;
+contract NFTMirror is AbstractNFT, ERC165 {
+    bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+    bytes4 private constant _INTERFACE_ID_ERC721_METADATA = 0x5b5e139f;
 
-    constructor(IERC721 nftContractAddress) {
+    AbstractNFT private _nftContract;
+
+    constructor(AbstractNFT nftContractAddress) {
         _nftContract = nftContractAddress;
     }
 
-    function ownerOf(uint256 tokenId) public view override returns (address) {
+    function name() external view override returns (string memory) {
+        return AbstractNFT(address(_nftContract)).name();
+    }
+
+    function symbol() external view override returns (string memory) {
+        return AbstractNFT(address(_nftContract)).symbol();
+    }
+
+    function ownerOf(uint256 tokenId) external view override returns (address) {
         return _nftContract.ownerOf(tokenId);
     }
 
-    function balanceOf(address owner) public view override returns (uint256) {
+    function balanceOf(address owner) external view override returns (uint256) {
         return _nftContract.balanceOf(owner);
     }
 
-    function totalSupply() public view override returns (uint256) {
-        return INFTMirror(address(_nftContract)).totalSupply();
+    function totalSupply() external view override returns (uint256) {
+        return AbstractNFT(address(_nftContract)).totalSupply();
     }
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        return IERC721Metadata(address(_nftContract)).tokenURI(tokenId);
+    function tokenURI(uint256 tokenId) external view override returns (string memory) {
+        return AbstractNFT(address(_nftContract)).tokenURI(tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC165, IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC165) returns (bool) {
         return
-            interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
-            interfaceId == type(INFTMirror).interfaceId ||
+            interfaceId == _INTERFACE_ID_ERC721 ||
+            interfaceId == _INTERFACE_ID_ERC721_METADATA ||
             super.supportsInterface(interfaceId);
     }
 }
