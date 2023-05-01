@@ -7,8 +7,12 @@ pragma solidity 0.8.19;
 
 import {Common} from "./Common.sol";
 import {CollaborationFactory} from "./CollaborationFactory.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract Collaboration is Common {
+  using SafeERC20 for IERC20;
+
   CollaborationFactory public immutable factory;
   uint256 private initialized;
   address public brand;
@@ -18,6 +22,9 @@ contract Collaboration is Common {
   bool public powProvided;
   string private proofOfWork;
   bool public finished;
+
+  IERC20 token;
+  uint256 amount;
 
   struct Proposal {
     string info;
@@ -52,7 +59,7 @@ contract Collaboration is Common {
     factory = _factory;
   }
 
-  function initialize(uint256 deadline, address _brand) external payable onlyFactory {
+  function initialize(uint256 deadline, address _brand, IERC20 _token, uint256 _amount) external onlyFactory {
     if (initialized != 0) {
       revert Initialized();
     }
@@ -61,6 +68,8 @@ contract Collaboration is Common {
     }
     initialized = block.timestamp;
     brand = _brand;
+    token = _token;
+    amount = _amount;
   }
 
   function createProposal(string memory info) external notFinished {
@@ -122,6 +131,7 @@ contract Collaboration is Common {
     }
     address influencer = proposals[currentProposal].influencer;
     payable(influencer).transfer(address(this).balance);
+    token.safeTransfer(influencer, amount);
     finished = true;
     factory.allowMint(influencer);
   }
