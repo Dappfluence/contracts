@@ -94,6 +94,7 @@ contract Collaboration is Common {
     if (proposalAccepted) {
       revert AcceptedProposalExists();
     }
+    proposalAccepted = true;
     currentProposal = index;
     emit ProposalAccepted(proposals[index].influencer, index);
   }
@@ -111,7 +112,7 @@ contract Collaboration is Common {
     workInProgress = true;
   }
 
-  function submitPOW(string memory _proofOfWork) external notFinished {
+  function submitProofOfWork(string memory _proofOfWork) external notFinished {
     if (!workInProgress) {
       revert NoWorkInProgress();
     }
