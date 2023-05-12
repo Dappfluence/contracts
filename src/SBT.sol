@@ -9,7 +9,7 @@ import {Common} from "./Common.sol";
 
 contract SBT is Ownable, Common, ERC721Enumerable {
   CollaborationFactory public factory;
-  uint256 private counter;
+  uint256 private counter = 1;
 
   constructor(CollaborationFactory _factory) ERC721("SBT", "SBT") {
     factory = _factory;

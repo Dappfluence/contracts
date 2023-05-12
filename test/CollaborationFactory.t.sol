@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC721} from "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import {CollaborationFactory} from "../src/CollaborationFactory.sol";
 import {Collaboration} from "../src/Collaboration.sol";
 import {SBT} from "../src/SBT.sol";
@@ -43,10 +44,16 @@ contract CollaborationFactoryTest is Test, Common {
     vm.expectRevert(NoValue.selector);
     collaborationFactory.createCollaboration(block.timestamp + 100, USDT, 0);
 
+    vm.expectRevert(DeadlinePassed.selector);
+    collaborationFactory.createCollaboration(block.timestamp - 100, USDT, 1 ether);
+
     vm.expectEmit(true, false, false, false);
     vm.expectEmit(true, true, false, false);
     vm.expectEmit(true, true, false, true);
     Collaboration collaboration = collaborationFactory.createCollaboration(block.timestamp + 100, USDT, 1 ether);
+    // try reinitialize
+    vm.expectRevert(Initialized.selector);
+    collaboration.initialize(block.timestamp + 100, address(brand), USDT, 1 ether);
     console.log("collaborationAddress: %s", address(collaboration));
     assertTrue(address(collaboration) != address(0));
     emit Transfer(brand, address(collaboration), 1 ether);
@@ -77,6 +84,7 @@ contract CollaborationFactoryTest is Test, Common {
     collaboration.startCollaboration();
 
     // influencer1 submits pow
+    changePrank(influencer1);
     collaboration.submitProofOfWork("proof1");
 
     // brand approves work
@@ -84,5 +92,37 @@ contract CollaborationFactoryTest is Test, Common {
     collaboration.approveWork();
     // TODO check token moved to influencer1
 
+    // influencer1 now mints sbt
+    changePrank(influencer1);
+    collaborationFactory.mintSBT();
+    assertEq(sbt.ownerOf(1), influencer1);
+    vm.expectRevert(YouHaveSBT.selector);
+    collaborationFactory.mintSBT();
+  }
+
+  function mintAllowance() external {
+    changePrank(influencer1);
+
+    // changePrank(address(collaboration));
+  }
+
+  function testSBT() external {
+    // mint - onlyFactory
+    changePrank(influencer1);
+    vm.expectRevert(OnlyFactory.selector);
+    sbt.mint(influencer1);
+
+    changePrank(address(collaborationFactory));
+    sbt.mint(influencer1);
+
+    // cannot approve
+    changePrank(influencer1);
+    vm.expectRevert(ApprovalsRestricted.selector);
+    sbt.approve(influencer2, 1);
+
+    // cannot transfer
+    changePrank(influencer1);
+    vm.expectRevert(TransfersRestricted.selector);
+    sbt.transferFrom(influencer1, influencer2, 1);
   }
 }
