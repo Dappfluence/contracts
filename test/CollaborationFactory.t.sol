@@ -52,7 +52,7 @@ contract CollaborationFactoryTest is Test, Common {
     vm.expectEmit(true, true, false, true);
     Collaboration collaboration = collaborationFactory.createCollaboration(block.timestamp + 100, USDT, 1 ether);
     // try reinitialize
-    vm.expectRevert(Initialized.selector);
+    vm.expectRevert(OnlyFactory.selector);
     collaboration.initialize(block.timestamp + 100, address(brand), USDT, 1 ether);
     console.log("collaborationAddress: %s", address(collaboration));
     assertTrue(address(collaboration) != address(0));
