@@ -14,7 +14,7 @@ abstract contract Common {
   error NoValue();
   error AlreadyProposed();
   error WorkInProgress();
-  error NoWorkInProgress();
+  error NoAcceptedProposal();
   error OnlyApprovedUser();
   error AcceptedProposalExists();
   error NoProposalAccepted();

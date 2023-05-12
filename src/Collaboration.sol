@@ -79,18 +79,12 @@ contract Collaboration is Common {
     if (proposalAccepted) {
       revert AcceptedProposalExists();
     }
-    if (workInProgress) {
-      revert WorkInProgress();
-    }
     proposals.push(Proposal(info, msg.sender));
     proposed[msg.sender] = true;
     emit ProposalCreated(msg.sender, info);
   }
 
   function acceptProposal(uint256 index) external onlyBrand notFinished {
-    if (workInProgress) {
-      revert WorkInProgress();
-    }
     if (proposalAccepted) {
       revert AcceptedProposalExists();
     }
@@ -99,22 +93,9 @@ contract Collaboration is Common {
     emit ProposalAccepted(proposals[index].influencer, index);
   }
 
-  function startCollaboration() external notFinished {
-    if (workInProgress) {
-      revert WorkInProgress();
-    }
-    if (!proposalAccepted) {
-      revert NoProposalAccepted();
-    }
-    if (msg.sender != proposals[currentProposal].influencer) {
-      revert OnlyApprovedUser();
-    }
-    workInProgress = true;
-  }
-
   function submitProofOfWork(string memory _proofOfWork) external notFinished {
-    if (!workInProgress) {
-      revert NoWorkInProgress();
+    if (!proposalAccepted) {
+      revert NoAcceptedProposal();
     }
     if (msg.sender != proposals[currentProposal].influencer) {
       revert OnlyApprovedUser();
@@ -124,8 +105,8 @@ contract Collaboration is Common {
   }
 
   function approveWork() external onlyBrand {
-    if (!workInProgress) {
-      revert NoWorkInProgress();
+    if (!proposalAccepted) {
+      revert NoAcceptedProposal();
     }
     if (!powProvided) {
       revert NoPowProvided();

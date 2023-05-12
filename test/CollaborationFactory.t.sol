@@ -74,15 +74,6 @@ contract CollaborationFactoryTest is Test, Common {
     changePrank(brand);
     collaboration.acceptProposal(0); // proposal1
 
-    // influencer2 cannot start work
-    changePrank(influencer2);
-    vm.expectRevert(OnlyApprovedUser.selector);
-    collaboration.startCollaboration();
-    
-    // influencer1 starts work
-    changePrank(influencer1);
-    collaboration.startCollaboration();
-
     // influencer1 submits pow
     changePrank(influencer1);
     collaboration.submitProofOfWork("proof1");

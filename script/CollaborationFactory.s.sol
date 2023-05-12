@@ -5,14 +5,14 @@ import "forge-std/Script.sol";
 import "../src/CollaborationFactory.sol";
 import "../src/Collaboration.sol";
 
-contract NFTMirrorScript is Script {
+contract CollaborationFactoryScript is Script {
     CollaborationFactory public collaborationFactory;
     Collaboration public collaboration;
 
     function setUp() public {}
 
     function run() public {
-        vm.createSelectFork("https://bsc-dataseed1.binance.org/");
+        // vm.createSelectFork("https://data-seed-prebsc-2-s3.binance.org:8545");
         vm.startBroadcast();
         collaborationFactory = new CollaborationFactory();
         collaboration = new Collaboration(collaborationFactory);
