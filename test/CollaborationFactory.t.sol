@@ -44,6 +44,7 @@ contract CollaborationFactoryTest is Test, Common {
 
     vm.expectEmit(true, false, false, false);
     Collaboration collaboration = collaborationFactory.createCollaboration{value: 1 ether}(block.timestamp + 10000);
+    console.log("COLLAB BALANCE", address(collaboration).balance);
 
     // console.log("collaborationAddress: %s", address(collaboration));
     assertTrue(address(collaboration) != address(0));
@@ -63,6 +64,14 @@ contract CollaborationFactoryTest is Test, Common {
     changePrank(influencer2);
     collaboration.createProposal("proposal2");
 
+    // get all proposals
+    Collaboration.Proposal[] memory proposals = collaboration.getProposals();
+    assertEq(proposals.length, 2);
+    assertEq(proposals[0].info, "proposal1");
+    assertEq(proposals[1].info, "proposal2");
+    assertEq(proposals[0].influencer, influencer1);
+    assertEq(proposals[1].influencer, influencer2);
+
     // brand accepts one of proposals
     changePrank(brand);
     collaboration.acceptProposal(0); // proposal1
@@ -75,6 +84,7 @@ contract CollaborationFactoryTest is Test, Common {
     changePrank(brand);
     collaboration.approveWork();
     // TODO check token moved to influencer1
+    console.log("INFL BALANCE AFTER FINISH WORK", address(influencer1).balance - 100 ether);
 
     // influencer1 now mints sbt
     changePrank(influencer1);

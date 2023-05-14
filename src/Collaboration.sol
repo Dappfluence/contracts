@@ -73,6 +73,10 @@ contract Collaboration is Common {
     locked = NOT_LOCKED;
   }
 
+  function getProposals() external view returns (Proposal[] memory) {
+    return proposals;
+  }
+
   function createProposal(string memory info) external notFinished {
     if (proposed[msg.sender]) {
       revert AlreadyProposed();
