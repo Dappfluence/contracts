@@ -20,6 +20,7 @@ abstract contract Common {
   error NoProposalAccepted();
   error NoPowProvided();
   error Finished();
+  error Reentrancy();
 
   event CollaborationCreated(address indexed collaboration);
   event ProposalCreated(address indexed influencer, string info);

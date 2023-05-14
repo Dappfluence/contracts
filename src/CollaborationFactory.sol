@@ -3,17 +3,16 @@ pragma solidity 0.8.19;
 
 import "openzeppelin-contracts/contracts/proxy/clones.sol";
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Common} from "./Common.sol";
 import {Collaboration} from "./Collaboration.sol";
 import {SBT} from "./SBT.sol";
 
 contract CollaborationFactory is Common, Ownable {
-    using SafeERC20 for IERC20;
-
     Collaboration public implementation;
     SBT public sbt;
+    address public beneficiar;
+
+    uint256 public collaborationFee = 5_00; // 5%
 
     mapping(address => bool) public allowedToMintNFT;
     mapping(address => bool) private isCollaboration;
@@ -22,12 +21,13 @@ contract CollaborationFactory is Common, Ownable {
         address _contract;
         address brand;
         uint256 deadline;
-        IERC20 token;
         uint256 amount;
     }
     Collab[] public collaborations;
 
-    constructor() { }
+    constructor(address _beneficiar) {
+        beneficiar = _beneficiar;
+    }
 
     modifier onlyCollaboration() {
         if (!isCollaboration[msg.sender]) {
@@ -40,12 +40,20 @@ contract CollaborationFactory is Common, Ownable {
         implementation = _implementation;
     }
 
+    function setCollaborationFee(uint256 _collaborationFee) external onlyOwner {
+        collaborationFee = _collaborationFee;
+    }
+
+    function setBeneficiar(address _beneficiar) external onlyOwner {
+        beneficiar = _beneficiar;
+    }
+
     function setSBT(SBT _sbt) external onlyOwner {
         sbt = _sbt;
     }
 
-    function createCollaboration(uint256 deadline, IERC20 token, uint256 amount) external returns (Collaboration) {
-        if (amount == 0) {
+    function createCollaboration(uint256 deadline) external payable returns (Collaboration) {
+        if (msg.value == 0) {
             revert NoValue();
         }
         if (deadline < block.timestamp) {
@@ -55,10 +63,9 @@ contract CollaborationFactory is Common, Ownable {
         
 
         // no constructor there, so we need to initialize
-        clone.initialize(deadline, msg.sender, token, amount);
-        token.safeTransferFrom(msg.sender, address(clone), amount);
+        clone.initialize{ value: msg.value }(deadline, msg.sender);
 
-        Collab memory collab = Collab(address(clone), msg.sender, deadline, token, amount);
+        Collab memory collab = Collab(address(clone), msg.sender, deadline, msg.value);
         
         collaborations.push(collab);
         isCollaboration[address(clone)] = true;
